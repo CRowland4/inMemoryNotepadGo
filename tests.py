@@ -9,11 +9,26 @@ class Test(StageTest):
         reply = program.start()
 
         self.check_empty_or_none_output(reply)
+        self.check_number_of_notes_prompt(reply)
+
+        reply = program.execute("3")
+        self.check_empty_or_none_output(reply)
         self.check_user_prompt(reply)
+
+        reply = program.execute('create')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Error] Missing note argument')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('del 2')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Error] Unknown command')
+        self.check_user_prompt_after_command(reply)
 
         reply = program.execute('list')
         self.check_empty_or_none_output(reply)
-        self.check_user_prompt(reply)
+        self.check_command_response(reply, '[Info] Notepad is empty')
+        self.check_user_prompt_after_command(reply)
 
         reply = program.execute('create This is my first record!')
         self.check_empty_or_none_output(reply)
@@ -28,9 +43,7 @@ class Test(StageTest):
 
         notes = [
             'This is my second record!',
-            'This is my third record!',
-            'This is my fourth record!',
-            'This is my fifth record!'
+            'This is my third record!'
         ]
 
         for note in notes:
@@ -53,7 +66,8 @@ class Test(StageTest):
 
         reply = program.execute('list')
         self.check_empty_or_none_output(reply)
-        self.check_user_prompt(reply)
+        self.check_command_response(reply, '[Info] Notepad is empty')
+        self.check_user_prompt_after_command(reply)
 
         reply = program.execute('exit')
         self.check_empty_or_none_output(reply)
@@ -81,6 +95,16 @@ class Test(StageTest):
             raise WrongAnswer('The program should ask user for a command.')
 
         self.check_user_prompt(output[1])
+
+    @staticmethod
+    def check_number_of_notes_prompt(raw_output):
+        prompt = 'Enter the maximum number of notes:'
+        if not raw_output.strip().lower().startswith(prompt.lower()):
+            raise WrongAnswer(
+                'The program should ask user to enter the maximum number of notes\n'
+                f'Your output should be equal to "{prompt}".\n'
+                f'Your output: "{raw_output}".'
+            )
 
     @staticmethod
     def check_user_prompt(raw_output):

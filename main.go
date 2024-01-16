@@ -7,62 +7,84 @@ import (
 	"strings"
 )
 
-const maxNotes = 5
+type notebook struct {
+	notes      []string
+	countNotes int
+	maxNotes   int
+}
 
 func main() {
-	notes := [maxNotes]string{}
+	var myNotebook = notebook{
+		notes:    []string{},
+		maxNotes: getMaxNoteCount(),
+	}
 
 	for {
-		command, data := getUserInput("Enter a command and data: ")
+		command, data := getUserCommand("\nEnter a command and data: ")
 
 		switch command {
 		case "create":
-			create(&notes, data)
+			create(&myNotebook, data)
 		case "list":
-			list(notes)
+			list(myNotebook)
 		case "clear":
-			clearNotes(&notes)
+			clearNotes(&myNotebook)
 		case "exit":
 			fmt.Println("[Info] Bye!")
 			return
 		default:
-			fmt.Printf("%s %s\n", command, data)
+			fmt.Println("[Error] Unknown command")
 		}
 	}
 }
 
-func create(notes *[maxNotes]string, data string) {
-	for i, note := range notes {
-		if note == "" {
-			notes[i] = data
-			fmt.Println("[OK] The note was successfully created")
-			return
-		}
+func create(myNotebook *notebook, data string) {
+	if myNotebook.countNotes == myNotebook.maxNotes {
+		fmt.Println("[Error] Notepad is full")
+		return
+	}
+	if strings.Trim(data, " ") == "" {
+		fmt.Println("[Error] Missing note argument")
+		return
 	}
 
-	fmt.Println("[Error] Notepad is full")
+	myNotebook.notes = append(myNotebook.notes, data)
+	myNotebook.countNotes++
+	fmt.Println("[OK] The note was successfully created")
 	return
 }
 
-func list(notes [maxNotes]string) {
-	for i, note := range notes {
+func list(myNotebook notebook) {
+	if len(myNotebook.notes) == 0 {
+		fmt.Println("[Info] Notepad is empty")
+		return
+	}
+
+	for i, note := range myNotebook.notes {
 		if note != "" {
 			fmt.Printf("[Info] %d: %s\n", i+1, note)
 		}
 	}
-
 	return
 }
 
-func clearNotes(notes *[maxNotes]string) {
-	*notes = [maxNotes]string{}
+func clearNotes(myNotebook *notebook) {
+	myNotebook.notes = []string{}
+	myNotebook.countNotes = 0
 
 	fmt.Println("[OK] All notes were successfully deleted")
 	return
 }
 
-func getUserInput(prompt string) (command, data string) {
-	fmt.Println(prompt)
+func getMaxNoteCount() (maxNotes int) {
+	fmt.Println("Enter the maximum number of notes:")
+	fmt.Scanln(&maxNotes)
+
+	return maxNotes
+}
+
+func getUserCommand(prompt string) (command, data string) {
+	fmt.Print(prompt)
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
