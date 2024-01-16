@@ -1,11 +1,9 @@
-import random
-import string
 from hstest import StageTest, dynamic_test, CheckResult, WrongAnswer, TestedProgram
 
 
 class Test(StageTest):
     @dynamic_test
-    def example_test(self):
+    def test(self):
         program = TestedProgram()
 
         reply = program.start()
@@ -13,39 +11,53 @@ class Test(StageTest):
         self.check_empty_or_none_output(reply)
         self.check_user_prompt(reply)
 
+        reply = program.execute('list')
+        self.check_empty_or_none_output(reply)
+        self.check_user_prompt(reply)
+
         reply = program.execute('create This is my first record!')
         self.check_empty_or_none_output(reply)
-        self.check_command_response(reply, 'create')
-        self.check_user_prompt_after_command(reply)
-
-        reply = program.execute('create This is my second record!')
-        self.check_empty_or_none_output(reply)
-        self.check_command_response(reply, 'create')
+        self.check_command_response(
+            reply, '[OK] The note was successfully created')
         self.check_user_prompt_after_command(reply)
 
         reply = program.execute('list')
         self.check_empty_or_none_output(reply)
-        self.check_command_response(reply, 'list')
+        self.check_command_response(reply, '[Info] 1: This is my first record!')
         self.check_user_prompt_after_command(reply)
+
+        notes = [
+            'This is my second record!',
+            'This is my third record!',
+            'This is my fourth record!',
+            'This is my fifth record!'
+        ]
+
+        for note in notes:
+            reply = program.execute(f'create {note}')
+            self.check_empty_or_none_output(reply)
+            self.check_command_response(
+                reply, '[OK] The note was successfully created')
+            self.check_user_prompt_after_command(reply)
+
+        reply = program.execute(f'create This is my sixth record!')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Error] Notepad is full')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute(f'clear')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(
+            reply, '[OK] All notes were successfully deleted')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('list')
+        self.check_empty_or_none_output(reply)
+        self.check_user_prompt(reply)
 
         reply = program.execute('exit')
         self.check_empty_or_none_output(reply)
         self.check_command_response(reply, '[Info] bye!')
-
-        return CheckResult.correct()
-
-    @dynamic_test
-    def random_test(self):
-        program = TestedProgram()
-
-        program.start()
-
-        command = self.get_random_string(5)
-        command_argument = f'{self.get_random_string(6)} {self.get_random_string(10)}'
-
-        reply = program.execute(f'{command} {command_argument}')
-        self.check_empty_or_none_output(reply)
-        self.check_command_response(reply, command)
 
         return CheckResult.correct()
 
@@ -84,11 +96,6 @@ class Test(StageTest):
     def check_empty_or_none_output(raw_output):
         if not raw_output:
             raise WrongAnswer('Your output is empty or None.')
-
-    @staticmethod
-    def get_random_string(length):
-        letters = string.ascii_lowercase
-        return ''.join(random.choice(letters) for _ in range(length))
 
 
 if __name__ == '__main__':
