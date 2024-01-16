@@ -11,9 +11,22 @@ class Test(StageTest):
         self.check_empty_or_none_output(reply)
         self.check_number_of_notes_prompt(reply)
 
-        reply = program.execute("3")
+        reply = program.execute("2")
         self.check_empty_or_none_output(reply)
         self.check_user_prompt(reply)
+
+        for i in range(1, 3):
+            reply = program.execute(f'update {i} Updated first note!')
+            self.check_empty_or_none_output(reply)
+            self.check_command_response(
+                reply, '[Error] There is nothing to update')
+            self.check_user_prompt_after_command(reply)
+
+            reply = program.execute(f'delete {i}')
+            self.check_empty_or_none_output(reply)
+            self.check_command_response(
+                reply, '[Error] There is nothing to delete')
+            self.check_user_prompt_after_command(reply)
 
         reply = program.execute('create')
         self.check_empty_or_none_output(reply)
@@ -36,26 +49,74 @@ class Test(StageTest):
             reply, '[OK] The note was successfully created')
         self.check_user_prompt_after_command(reply)
 
-        reply = program.execute('list')
+        reply = program.execute('update 1')
         self.check_empty_or_none_output(reply)
-        self.check_command_response(reply, '[Info] 1: This is my first record!')
+        self.check_command_response(reply, '[Error] Missing note argument')
         self.check_user_prompt_after_command(reply)
 
-        notes = [
-            'This is my second record!',
-            'This is my third record!'
-        ]
-
-        for note in notes:
-            reply = program.execute(f'create {note}')
-            self.check_empty_or_none_output(reply)
-            self.check_command_response(
-                reply, '[OK] The note was successfully created')
-            self.check_user_prompt_after_command(reply)
-
-        reply = program.execute(f'create This is my sixth record!')
+        reply = program.execute('update one Updated first note!')
         self.check_empty_or_none_output(reply)
-        self.check_command_response(reply, '[Error] Notepad is full')
+        self.check_command_response(reply, '[Error] Invalid position: one')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('update')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Error] Missing position argument')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('update 10')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Error] Missing note argument')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('update 10 Updated tenth note!')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(
+            reply, '[Error] Position 10 is out of the boundaries [1, 2]')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('update 1 Updated first note!')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(
+            reply, '[OK] The note at position 1 was successfully updated')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('list')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Info] 1: Updated first note!')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('create This is my second record!')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(
+            reply, '[OK] The note was successfully created')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('delete one')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Error] Invalid position: one')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('delete')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Error] Missing position argument')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('delete 1')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(
+            reply, '[OK] The note at position 1 was successfully deleted')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute('list')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(reply, '[Info] 1: This is my second record!')
+        self.check_user_prompt_after_command(reply)
+
+        reply = program.execute(f'create This is my second record!')
+        self.check_empty_or_none_output(reply)
+        self.check_command_response(
+            reply, '[OK] The note was successfully created')
         self.check_user_prompt_after_command(reply)
 
         reply = program.execute(f'clear')

@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -25,8 +27,12 @@ func main() {
 		switch command {
 		case "create":
 			create(&myNotebook, data)
+		case "update":
+			update(&myNotebook, data)
 		case "list":
 			list(myNotebook)
+		case "delete":
+			deleteNote(&myNotebook, data) // TODO
 		case "clear":
 			clearNotes(&myNotebook)
 		case "exit":
@@ -52,6 +58,80 @@ func create(myNotebook *notebook, data string) {
 	myNotebook.countNotes++
 	fmt.Println("[OK] The note was successfully created")
 	return
+}
+
+func update(myNotebook *notebook, data string) {
+	dataArray := strings.Split(strings.Trim(data, " "), " ")
+	if strings.Trim(dataArray[0], " ") == "" {
+		fmt.Println("[Error] Missing position argument")
+		return
+	}
+	if len(dataArray) < 2 {
+		fmt.Println("[Error] Missing note argument")
+		return
+	}
+
+	positionString, newNote := dataArray[0], strings.Join(dataArray[1:], " ")
+	position, err1 := strconv.Atoi(positionString)
+	if err1 != nil {
+		fmt.Printf("[Error] Invalid position: %s\n", positionString)
+		return
+	}
+
+	if isValid, err2 := isNotePositionValid(myNotebook, position, "update"); !isValid {
+		fmt.Println(err2.Error())
+		return
+	}
+
+	myNotebook.notes[position-1] = newNote
+	fmt.Printf("[OK] The note at position %d was successfully updated\n", position)
+	return
+}
+
+func deleteNote(myNotebook *notebook, data string) {
+	data = strings.Trim(data, " ")
+	if len(data) == 0 {
+		fmt.Println("[Error] Missing position argument")
+		return
+	}
+
+	position, err1 := strconv.Atoi(data)
+	if err1 != nil {
+		fmt.Printf("[Error] Invalid position: %s\n", data)
+		return
+	}
+
+	if isValid, err2 := isNotePositionValid(myNotebook, position, "delete"); !isValid {
+		fmt.Println(err2.Error())
+		return
+	}
+
+	switch position {
+	case 1:
+		myNotebook.notes = myNotebook.notes[1:]
+	case myNotebook.countNotes:
+		myNotebook.notes = myNotebook.notes[:position-1]
+	default:
+		index := position - 1
+		myNotebook.notes = append(myNotebook.notes[:index], myNotebook.notes[index+1])
+	}
+
+	myNotebook.countNotes--
+	fmt.Printf("[OK] The note at position %d was successfully deleted\n", position)
+	return
+}
+
+func isNotePositionValid(myNotebook *notebook, position int, command string) (isValid bool, err error) {
+	if position > myNotebook.maxNotes {
+		message := fmt.Sprintf("[Error] Position %d is out of the boundaries [1, %d]", position, myNotebook.maxNotes)
+		return false, errors.New(message)
+	}
+	if !(position >= 0) || !(position <= myNotebook.countNotes) {
+		message := fmt.Sprintf("[Error] There is nothing to %s", command)
+		return false, errors.New(message)
+	}
+
+	return true, nil
 }
 
 func list(myNotebook notebook) {
