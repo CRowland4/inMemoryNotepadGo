@@ -9,6 +9,13 @@ import (
 	"strings"
 )
 
+const helpMessage string = `create <note>: Creates a note
+update <position int> <new note>: Updates the note at the given position with the new note
+list: Prints out a list of all notes
+delete <position>: Deletes the note at the given position
+clear: Deletes all notes
+exit: Terminates the program`
+
 type notebook struct {
 	notes      []string
 	countNotes int
@@ -22,7 +29,7 @@ func main() {
 	}
 
 	for {
-		command, data := getUserCommand("\nEnter a command and data: ")
+		command, data := getUserCommand("\nEnter a command and data, or 'help' for a list of commands: ")
 
 		switch command {
 		case "create":
@@ -32,9 +39,11 @@ func main() {
 		case "list":
 			list(myNotebook)
 		case "delete":
-			deleteNote(&myNotebook, data) // TODO
+			deleteNote(&myNotebook, data)
 		case "clear":
 			clearNotes(&myNotebook)
+		case "help":
+			fmt.Println(helpMessage)
 		case "exit":
 			fmt.Println("[Info] Bye!")
 			return
